@@ -1,0 +1,37 @@
+{
+    var apiKey = "";
+    var ranks = {
+        "CHALLENGER I":   31, 
+        "GRANDMASTER I":  30, 
+        "MASTER I":       29, 
+        "DIAMOND I":      28,
+        "DIAMOND II":     27,
+        "DIAMOND III":    26,
+        "DIAMOND IV":     25,
+        "EMERALD I":      24,
+        "EMERALD II":     23,
+        "EMERALD III":    22,
+        "EMERALD IV":     21,
+        "PLATINUM I":     20,
+        "PLATINUM II":    19,
+        "PLATINUM III":   18,
+        "PLATINUM IV":    17,
+        "GOLD I":         16,
+        "GOLD II":        15,
+        "GOLD III":       14,
+        "GOLD IV":        13,
+        "SILVER I":       12,
+        "SILVER II":      11,
+        "SILVER III":     10,
+        "SILVER IV":      9,
+        "BRONZE I":       8,
+        "BRONZE II":      7,
+        "BRONZE III":     6,
+        "BRONZE IV":      5,
+        "IRON I":         4,
+        "IRON II":        3,
+        "IRON III":       2,
+        "IRON IV":        1,
+        "UNRANKED IV":    11
+    };
+}
