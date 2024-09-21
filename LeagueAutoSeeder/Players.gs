@@ -1,25 +1,34 @@
 /* 
-https://developer.riotgames.com/apis#summoner-v4 - Get the "id" by summoner name /lol/summoner/v4/summoners/by-name/{summonerName}
+https://developer.riotgames.com/apis#account-v1 - Get the "id" by RIOT ID /riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}
 https://developer.riotgames.com/apis#league-v4 - Get ranks using encryped id /lol/league/v4/entries/by-summoner/{encryptedSummonerId}
  */
-function CreatePlayerObject(IGN) {
+function CreatePlayerObject(riotID) {
 
   var player = {
-    ign:"",                   // String - Players In Game Name.         
-    encryptedId:"",           // String - encrypted Id from RIOT API.
+    riotID:"",                // String - Players RIOT ID. 
+    gameName:"",              // String - Players In Game Name. 
+    tagLine:"",               // String - Players Tag Line.        
+    puuidId:"",             // String - puuid Id from RIOT API.
+    summonerId:"",            // String - Summoner Id from RIOT API.
     tier:"",                  // String - The players ranked tier.
     division:"",              // String - The players ranked division within a tier.
     lp:0,                     // Int - The players ranked league points within a division.
     rankValue:0               // Int - A numerical value equivalent to the players rank. See Config.gs.
   }
 
-  player.ign = IGN;
-  player.encryptedId = getEncrypedId(player.ign);  
-  if(player.encryptedId == 'undefined' || !player.encryptedId){
-    player.encryptedId = 'Bad IGN';
+  player.riotID = riotID;
+  var riotIDSplit = riotID.split("#");
+  player.gameName = riotIDSplit[0];
+  player.tagLine = riotIDSplit[1];
+
+  player.puuidId = getpuuidId(player.gameName, player.tagLine);  
+  if(player.puuidId == 'undefined' || !player.puuidId){
+    player.puuidId = 'Bad IGN';
   }
 
-  var rankData = getSoloQRank(player.encryptedId); 
+  player.summonerId = getSummonerId(player.puuidId);  
+
+  var rankData = getSoloQRank(player.summonerId); 
   if(rankData !== 'undefined' && rankData){
     player.tier = rankData['tier'];
     player.division= rankData['division'];
@@ -32,14 +41,25 @@ function CreatePlayerObject(IGN) {
     player.lp = 0;
     player.rankValue = ranks[player.tier + " " + player.division];
   }
-    
+   
   return player;
 }
 
-// Gets a players encrypted id based on their IGN
-function getEncrypedId(IGN) {
+// Gets a players puuid id based on their RIOT ID
+function getpuuidId(gameName, tagLine) {
   try {
-    var response = UrlFetchApp.fetch(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/`+IGN+`?api_key=${apiKey}`);
+    var response = UrlFetchApp.fetch(`https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/`+gameName+`/`+tagLine+`?api_key=${apiKey}`);
+    var JSONresp = JSON.parse(response.getContentText());
+    return JSONresp["puuid"];
+  } catch (error) {
+    Logger.log(error);
+  }
+}
+
+// Gets a players Summoner id based on their account id
+function getSummonerId(puuidId) {
+  try {
+    var response = UrlFetchApp.fetch(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/`+puuidId+`?api_key=${apiKey}`);
     var JSONresp = JSON.parse(response.getContentText());
     return JSONresp["id"];
   } catch (error) {
@@ -48,7 +68,7 @@ function getEncrypedId(IGN) {
 }
 
 // Gets a players Solo Queue ranks based on their encrypted id
-function getSoloQRank(encryptedId){
+function getSoloQRank(summonerId){
 
   var isRanked = 0; // Flag to mark a player as having a rank in the standard ranked playlist "RANKED_SOLO_5x5"
 
@@ -59,7 +79,7 @@ function getSoloQRank(encryptedId){
     lp:0
     }   
 
-    var response = UrlFetchApp.fetch(`https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/`+encryptedId+`?api_key=${apiKey}`);
+    var response = UrlFetchApp.fetch(`https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/`+summonerId+`?api_key=${apiKey}`);
     var JSONresp = JSON.parse(response.getContentText());
 
     if(JSONresp.length == 0){
